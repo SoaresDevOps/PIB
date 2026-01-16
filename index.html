@@ -6,18 +6,27 @@
     <title>PIB Populina - Rol de Membros</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        :root { --primary-color: #2c3e50; --accent-color: #8e44ad; --text-color: #333; }
+        :root { --primary-color: #2c3e50; --accent-color: #8e44ad; --danger-color: #c0392b; --edit-color: #2980b9; --text-color: #333; }
         body { font-family: 'Georgia', serif; background-color: #f4f4f4; padding: 20px; }
-        .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-top: 5px solid var(--primary-color); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        .container { max-width: 950px; margin: 0 auto; background: white; padding: 30px; border-top: 5px solid var(--primary-color); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
         h1, h2 { text-align: center; color: var(--primary-color); }
         .form-group { margin-bottom: 15px; }
         label { display: block; font-weight: bold; margin-bottom: 5px; }
         input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button.btn-add { background-color: var(--primary-color); color: white; padding: 12px; border: none; width: 100%; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 10px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 30px; }
-        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #ddd; }
+        
+        .btn-group { display: flex; gap: 10px; margin-top: 10px; }
+        button.btn-add { background-color: var(--primary-color); color: white; padding: 12px; border: none; width: 100%; cursor: pointer; font-size: 16px; font-weight: bold; }
+        button#btn-cancel { background-color: #7f8c8d; color: white; display: none; width: 30%; border: none; cursor: pointer; }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 30px; font-size: 0.9em; }
+        th, td { text-align: left; padding: 10px; border-bottom: 1px solid #ddd; }
         th { background-color: var(--primary-color); color: white; }
-        .btn-pdf { background-color: var(--accent-color); color: white; border: none; padding: 6px 12px; cursor: pointer; border-radius: 3px; }
+        
+        .actions { display: flex; gap: 5px; }
+        .btn-pdf { background-color: var(--accent-color); color: white; border: none; padding: 5px 8px; cursor: pointer; border-radius: 3px; }
+        .btn-edit { background-color: var(--edit-color); color: white; border: none; padding: 5px 8px; cursor: pointer; border-radius: 3px; }
+        .btn-del { background-color: var(--danger-color); color: white; border: none; padding: 5px 8px; cursor: pointer; border-radius: 3px; }
+        
         #logo-container { text-align: center; margin-bottom: 20px; }
         #logo-igreja { max-width: 150px; height: auto; }
     </style>
@@ -28,10 +37,12 @@
         <div id="logo-container">
             <img id="logo-igreja" src="image_0.png" alt="Logo PIB Populina" onerror="this.style.opacity='0.3'">
         </div>
-        <h1>Rol de Membros</h1>
+        <h1 id="form-title">Cadastro de Membros</h1>
         <hr>
 
         <form id="churchForm">
+            <input type="hidden" id="membro-id">
+            
             <div class="form-group"><label>Nome Completo:</label><input type="text" id="nome" required></div>
             <div style="display: flex; gap: 15px;">
                 <div class="form-group" style="flex: 1;"><label>Nascimento:</label><input type="date" id="nascimento" required></div>
@@ -47,19 +58,23 @@
             </div>
             <div class="form-group"><label>Endereço:</label><input type="text" id="endereco" required></div>
             <div class="form-group"><label>Batizado?</label><select id="batizado"><option value="Sim">Sim</option><option value="Não">Não</option></select></div>
-            <button type="submit" class="btn-add">Salvar na Nuvem</button>
+            
+            <div class="btn-group">
+                <button type="submit" id="btn-submit" class="btn-add">Salvar na Nuvem</button>
+                <button type="button" id="btn-cancel" onclick="resetarFormulario()">Cancelar</button>
+            </div>
         </form>
 
-        <h2>Membros Cadastrados</h2>
+        <h2>Rol de Membros Atuais</h2>
         <table id="membersTable">
-            <thead><tr><th>Nome</th><th>Nascimento</th><th>Função</th><th>Ação</th></tr></thead>
+            <thead><tr><th>Nome</th><th>Nascimento</th><th>Função</th><th>Ações</th></tr></thead>
             <tbody></tbody>
         </table>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-        import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+        import { getDatabase, ref, push, set, remove, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyCxlOVLugpmBs3skzlOFPU3i7PilK03HC8",
@@ -76,32 +91,85 @@
         const membrosRef = ref(db, 'membros');
         window.membrosCache = {};
 
+        // SALVAR OU EDITAR
         document.getElementById('churchForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const novo = {
+            const id = document.getElementById('membro-id').value;
+            
+            const dados = {
                 nome: document.getElementById('nome').value,
                 nascimento: document.getElementById('nascimento').value,
                 endereco: document.getElementById('endereco').value,
                 funcao: document.getElementById('funcao').value,
                 batizado: document.getElementById('batizado').value,
-                dataCadastro: new Date().toLocaleDateString('pt-BR')
+                dataAtualizacao: new Date().toLocaleDateString('pt-BR')
             };
-            await push(membrosRef, novo);
-            e.target.reset();
+
+            if (id) {
+                // Modo Edição: atualiza o nó específico
+                await set(ref(db, 'membros/' + id), dados);
+                alert("Dados atualizados com sucesso!");
+            } else {
+                // Modo Novo: cria um novo nó
+                dados.dataCadastro = new Date().toLocaleDateString('pt-BR');
+                await push(membrosRef, dados);
+                alert("Membro cadastrado com sucesso!");
+            }
+            
+            resetarFormulario();
         });
 
+        // ESCUTAR MUDANÇAS
         onValue(membrosRef, (snapshot) => {
             const tbody = document.querySelector('#membersTable tbody');
             tbody.innerHTML = '';
             window.membrosCache = snapshot.val() || {};
+            
             Object.keys(window.membrosCache).forEach(id => {
                 const m = window.membrosCache[id];
                 const tr = document.createElement('tr');
-                tr.innerHTML = `<td>${m.nome}</td><td>${m.nascimento.split('-').reverse().join('/')}</td><td>${m.funcao}</td>
-                <td><button class="btn-pdf" onclick="gerarFicha('${id}')">PDF</button></td>`;
+                tr.innerHTML = `
+                    <td>${m.nome}</td>
+                    <td>${m.nascimento.split('-').reverse().join('/')}</td>
+                    <td>${m.funcao}</td>
+                    <td class="actions">
+                        <button class="btn-pdf" onclick="gerarFicha('${id}')">PDF</button>
+                        <button class="btn-edit" onclick="editarMembro('${id}')">✏️</button>
+                        <button class="btn-del" onclick="removerMembro('${id}')">🗑️</button>
+                    </td>`;
                 tbody.appendChild(tr);
             });
         });
+
+        // FUNÇÕES GLOBAIS
+        window.removerMembro = (id) => {
+            if(confirm("Deseja realmente remover este membro do Rol? Esta ação não pode ser desfeita.")) {
+                remove(ref(db, 'membros/' + id));
+            }
+        };
+
+        window.editarMembro = (id) => {
+            const m = window.membrosCache[id];
+            document.getElementById('membro-id').value = id;
+            document.getElementById('nome').value = m.nome;
+            document.getElementById('nascimento').value = m.nascimento;
+            document.getElementById('endereco').value = m.endereco;
+            document.getElementById('funcao').value = m.funcao;
+            document.getElementById('batizado').value = m.batizado;
+            
+            document.getElementById('form-title').innerText = "Editando Membro";
+            document.getElementById('btn-submit').innerText = "Salvar Alterações";
+            document.getElementById('btn-cancel').style.display = "block";
+            window.scrollTo(0,0);
+        };
+
+        window.resetarFormulario = () => {
+            document.getElementById('churchForm').reset();
+            document.getElementById('membro-id').value = "";
+            document.getElementById('form-title').innerText = "Cadastro de Membros";
+            document.getElementById('btn-submit').innerText = "Salvar na Nuvem";
+            document.getElementById('btn-cancel').style.display = "none";
+        };
     </script>
 
     <script>
@@ -113,7 +181,13 @@
             doc.text("PIB POPULINA - FICHA DE MEMBRO", 105, 20, {align:"center"});
             doc.setFontSize(12); doc.setFont("times", "normal");
             let y = 40;
-            const info = [["Nome:", m.nome], ["Nascimento:", m.nascimento], ["Endereço:", m.endereco], ["Função:", m.funcao], ["Batizado:", m.batizado]];
+            const info = [
+                ["Nome:", m.nome], 
+                ["Nascimento:", m.nascimento.split('-').reverse().join('/')], 
+                ["Endereço:", m.endereco], 
+                ["Função:", m.funcao], 
+                ["Batizado:", m.batizado]
+            ];
             info.forEach(item => { doc.text(`${item[0]} ${item[1]}`, 20, y); y += 10; });
             
             const img = document.getElementById('logo-igreja');
