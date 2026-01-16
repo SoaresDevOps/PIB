@@ -3,351 +3,127 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registro de Membresia Eclesiástica</title>
+    <title>PIB Populina - Rol de Membros</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <style>
-        /* Estilos existentes mantidos */
-        :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #ecf0f1;
-            --accent-color: #8e44ad;
-            --text-color: #333;
-        }
-
-        body {
-            font-family: 'Georgia', serif;
-            background-color: #f4f4f4;
-            color: var(--text-color);
-            margin: 0;
-            padding: 20px;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            background: white;
-            padding: 30px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            border-top: 5px solid var(--primary-color);
-        }
-
-        h1, h2 {
-            text-align: center;
-            color: var(--primary-color);
-        }
-
-        .verse {
-            text-align: center;
-            font-style: italic;
-            color: #666;
-            margin-bottom: 20px;
-            font-size: 0.9em;
-        }
-
-        .form-group {
-            margin-bottom: 15px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-        }
-
-        input[type="text"], input[type="date"], select {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-
-        button.btn-add {
-            background-color: var(--primary-color);
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            cursor: pointer;
-            width: 100%;
-            font-size: 16px;
-            margin-top: 10px;
-        }
-
-        button.btn-add:hover {
-            background-color: #1a252f;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 30px;
-        }
-
-        th, td {
-            text-align: left;
-            padding: 12px;
-            border-bottom: 1px solid #ddd;
-        }
-
-        th {
-            background-color: var(--primary-color);
-            color: white;
-        }
-
-        tr:hover {
-            background-color: #f5f5f5;
-        }
-
-        .btn-pdf {
-            background-color: var(--accent-color);
-            color: white;
-            border: none;
-            padding: 5px 10px;
-            cursor: pointer;
-            border-radius: 3px;
-            font-size: 0.8em;
-        }
-
-        .btn-pdf:hover {
-            background-color: #6c3483;
-        }
-
-        .badge-yes { color: green; font-weight: bold; }
-        .badge-no { color: red; font-weight: bold; }
-        
-        #logo-container {
-            text-align: center;
-            margin-bottom: 20px;
-        }
-        #logo-igreja {
-            max-width: 150px;
-            height: auto;
-        }
+        :root { --primary-color: #2c3e50; --accent-color: #8e44ad; --text-color: #333; }
+        body { font-family: 'Georgia', serif; background-color: #f4f4f4; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: white; padding: 30px; border-top: 5px solid var(--primary-color); box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h1, h2 { text-align: center; color: var(--primary-color); }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; font-weight: bold; margin-bottom: 5px; }
+        input, select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button.btn-add { background-color: var(--primary-color); color: white; padding: 12px; border: none; width: 100%; cursor: pointer; font-size: 16px; font-weight: bold; margin-top: 10px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 30px; }
+        th, td { text-align: left; padding: 12px; border-bottom: 1px solid #ddd; }
+        th { background-color: var(--primary-color); color: white; }
+        .btn-pdf { background-color: var(--accent-color); color: white; border: none; padding: 6px 12px; cursor: pointer; border-radius: 3px; }
+        #logo-container { text-align: center; margin-bottom: 20px; }
+        #logo-igreja { max-width: 150px; height: auto; }
     </style>
 </head>
 <body>
 
     <div class="container">
         <div id="logo-container">
-            <img id="logo-igreja" src="image_0.png" alt="Logo PIB Populina">
+            <img id="logo-igreja" src="image_0.png" alt="Logo PIB Populina" onerror="this.style.opacity='0.3'">
         </div>
         <h1>Rol de Membros</h1>
-        <p class="verse">"Conheço as minhas ovelhas, e elas me conhecem." (João 10:14)</p>
-        
         <hr>
 
-        <div class="card">
-            <h2>Novo Cadastro</h2>
-            <form id="churchForm">
-                <div class="form-group">
-                    <label for="nome">Nome Completo:</label>
-                    <input type="text" id="nome" placeholder="Ex: João Calvino" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="nascimento">Data de Nascimento:</label>
-                    <input type="date" id="nascimento" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="endereco">Endereço Residencial:</label>
-                    <input type="text" id="endereco" placeholder="Rua, Número, Bairro, Cidade" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="funcao">Ofício / Função:</label>
-                    <select id="funcao" required>
-                        <option value="">Selecione...</option>
+        <form id="churchForm">
+            <div class="form-group"><label>Nome Completo:</label><input type="text" id="nome" required></div>
+            <div style="display: flex; gap: 15px;">
+                <div class="form-group" style="flex: 1;"><label>Nascimento:</label><input type="date" id="nascimento" required></div>
+                <div class="form-group" style="flex: 1;"><label>Função:</label>
+                    <select id="funcao">
                         <option value="Membro Comum">Membro Comum</option>
-                        <option value="Membro Não-Comungante">Membro Não-Comungante (Menor)</option>
                         <option value="Diácono">Diácono</option>
                         <option value="Presbítero">Presbítero</option>
                         <option value="Pastor">Pastor</option>
                         <option value="Missionário">Missionário</option>
                     </select>
                 </div>
-
-                <div class="form-group">
-                    <label for="batizado">Batizado?</label>
-                    <select id="batizado" required>
-                        <option value="Sim">Sim, sob a aliança</option>
-                        <option value="Não">Não</option>
-                    </select>
-                </div>
-
-                <button type="submit" class="btn-add">Cadastrar no Livro</button>
-            </form>
-        </div>
+            </div>
+            <div class="form-group"><label>Endereço:</label><input type="text" id="endereco" required></div>
+            <div class="form-group"><label>Batizado?</label><select id="batizado"><option value="Sim">Sim</option><option value="Não">Não</option></select></div>
+            <button type="submit" class="btn-add">Salvar na Nuvem</button>
+        </form>
 
         <h2>Membros Cadastrados</h2>
         <table id="membersTable">
-            <thead>
-                <tr>
-                    <th>Nome</th>
-                    <th>Nascimento</th>
-                    <th>Ofício</th>
-                    <th>Batizado</th>
-                    <th>Ação</th>
-                </tr>
-            </thead>
-            <tbody>
-                </tbody>
+            <thead><tr><th>Nome</th><th>Nascimento</th><th>Função</th><th>Ação</th></tr></thead>
+            <tbody></tbody>
         </table>
     </div>
 
-    <script>
-        let membros = [];
-        const { jsPDF } = window.jspdf;
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-        // Converte imagem para Base64
-        function getBase64Image(img) {
-            var canvas = document.createElement("canvas");
-            canvas.width = img.width;
-            canvas.height = img.height;
-            var ctx = canvas.getContext("2d");
-            ctx.drawImage(img, 0, 0);
-            var dataURL = canvas.toDataURL("image/png");
-            return dataURL.replace(/^data:image\/(png|jpg);base64,/, "");
-        }
+        const firebaseConfig = {
+            apiKey: "AIzaSyCxlOVLugpmBs3skzlOFPU3i7PilK03HC8",
+            authDomain: "igreja-743d5.firebaseapp.com",
+            databaseURL: "https://igreja-743d5-default-rtdb.firebaseio.com",
+            projectId: "igreja-743d5",
+            storageBucket: "igreja-743d5.firebasestorage.app",
+            messagingSenderId: "15654046243",
+            appId: "1:15654046243:web:d3d41ad6f870a6f0887f96"
+        };
 
-        function formatarDataBR(dataISO) {
-            if (!dataISO) return "";
-            const [ano, mes, dia] = dataISO.split('-');
-            return `${dia}/${mes}/${ano}`;
-        }
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const membrosRef = ref(db, 'membros');
+        window.membrosCache = {};
 
-        document.getElementById('churchForm').addEventListener('submit', function(e) {
+        document.getElementById('churchForm').addEventListener('submit', async (e) => {
             e.preventDefault();
-
-            const nome = document.getElementById('nome').value;
-            const nascimento = document.getElementById('nascimento').value;
-            const endereco = document.getElementById('endereco').value;
-            const funcao = document.getElementById('funcao').value;
-            const batizado = document.getElementById('batizado').value;
-
-            const novoMembro = {
-                id: Date.now(),
-                nome: nome,
-                nascimento: nascimento,
-                endereco: endereco,
-                funcao: funcao,
-                batizado: batizado,
+            const novo = {
+                nome: document.getElementById('nome').value,
+                nascimento: document.getElementById('nascimento').value,
+                endereco: document.getElementById('endereco').value,
+                funcao: document.getElementById('funcao').value,
+                batizado: document.getElementById('batizado').value,
                 dataCadastro: new Date().toLocaleDateString('pt-BR')
             };
-
-            membros.push(novoMembro);
-            atualizarTabela();
-            document.getElementById('churchForm').reset();
+            await push(membrosRef, novo);
+            e.target.reset();
         });
 
-        function atualizarTabela() {
+        onValue(membrosRef, (snapshot) => {
             const tbody = document.querySelector('#membersTable tbody');
             tbody.innerHTML = '';
-
-            membros.forEach(membro => {
+            window.membrosCache = snapshot.val() || {};
+            Object.keys(window.membrosCache).forEach(id => {
+                const m = window.membrosCache[id];
                 const tr = document.createElement('tr');
-                
-                const statusBatismo = membro.batizado === 'Sim' 
-                    ? '<span class="badge-yes">Sim</span>' 
-                    : '<span class="badge-no">Não</span>';
-
-                const nascFormatado = formatarDataBR(membro.nascimento);
-
-                tr.innerHTML = `
-                    <td>${membro.nome}</td>
-                    <td>${nascFormatado}</td>
-                    <td>${membro.funcao}</td>
-                    <td>${statusBatismo}</td>
-                    <td>
-                        <button class="btn-pdf" onclick="gerarFicha(${membro.id})">Baixar Ficha</button>
-                    </td>
-                `;
+                tr.innerHTML = `<td>${m.nome}</td><td>${m.nascimento.split('-').reverse().join('/')}</td><td>${m.funcao}</td>
+                <td><button class="btn-pdf" onclick="gerarFicha('${id}')">PDF</button></td>`;
                 tbody.appendChild(tr);
             });
-        }
+        });
+    </script>
 
+    <script>
         function gerarFicha(id) {
-            const membro = membros.find(m => m.id === id);
-            if (!membro) return;
-
+            const m = window.membrosCache[id];
+            const { jsPDF } = window.jspdf;
             const doc = new jsPDF();
-            const imgData = getBase64Image(document.getElementById('logo-igreja'));
-
-            // Cabeçalho
-            doc.setFont("times", "bold");
-            doc.setFontSize(22);
-            doc.text("PRIMEIRA IGREJA BATISTA EM POPULINA", 105, 20, null, null, "center");
+            doc.setFont("times", "bold"); doc.setFontSize(18);
+            doc.text("PIB POPULINA - FICHA DE MEMBRO", 105, 20, {align:"center"});
+            doc.setFontSize(12); doc.setFont("times", "normal");
+            let y = 40;
+            const info = [["Nome:", m.nome], ["Nascimento:", m.nascimento], ["Endereço:", m.endereco], ["Função:", m.funcao], ["Batizado:", m.batizado]];
+            info.forEach(item => { doc.text(`${item[0]} ${item[1]}`, 20, y); y += 10; });
             
-            doc.setFontSize(16);
-            doc.setFont("times", "normal");
-            doc.text("Ficha Cadastral de Membro", 105, 30, null, null, "center");
-
-            doc.setLineWidth(0.5);
-            doc.line(20, 35, 190, 35);
-
-            // Dados
-            doc.setFontSize(12);
-            let y = 50; 
-
-            // Nome
-            doc.setFont("times", "bold");
-            doc.text("Nome Completo:", 20, y);
-            doc.setFont("times", "normal");
-            doc.text(membro.nome, 70, y);
-            
-            y += 10;
-            // Nascimento
-            doc.setFont("times", "bold");
-            doc.text("Data de Nascimento:", 20, y);
-            doc.setFont("times", "normal");
-            doc.text(formatarDataBR(membro.nascimento), 70, y);
-
-            y += 10;
-            // Endereço
-            doc.setFont("times", "bold");
-            doc.text("Endereço:", 20, y);
-            doc.setFont("times", "normal");
-            doc.text(membro.endereco, 70, y);
-
-            y += 10;
-            // Ofício
-            doc.setFont("times", "bold");
-            doc.text("Ofício Eclesiástico:", 20, y);
-            doc.setFont("times", "normal");
-            doc.text(membro.funcao, 70, y);
-
-            y += 10;
-            // Batismo
-            doc.setFont("times", "bold");
-            doc.text("Situação Batismal:", 20, y);
-            doc.setFont("times", "normal");
-            doc.text(membro.batizado, 70, y);
-
-            y += 10;
-            // Data Registro
-            doc.setFont("times", "bold");
-            doc.text("Data de Registro:", 20, y);
-            doc.setFont("times", "normal");
-            doc.text(membro.dataCadastro, 70, y);
-
-            // Área de notas
-            y += 20;
-            doc.rect(20, y, 170, 50); 
-            doc.text("Observações Pastorais / Disciplinares:", 22, y + 6);
-
-            // Rodapé com Assinaturas
-            y += 70;
-            doc.line(20, y, 90, y);
-            doc.setFontSize(10);
-            doc.text("Assinatura do Membro", 20, y + 5);
-
-            doc.line(110, y, 180, y);
-            doc.text("Secretaria / Conselho", 110, y + 5);
-
-            // Logomarca no final da página
-            doc.addImage(imgData, 'PNG', 80, 250, 50, 30); // Posição X, Y, Largura, Altura
-
-            doc.save(`Ficha_${membro.nome.replace(/ /g, "_")}.pdf`);
+            const img = document.getElementById('logo-igreja');
+            if(img && img.naturalHeight !== 0) {
+                const canvas = document.createElement("canvas");
+                canvas.width = img.width; canvas.height = img.height;
+                canvas.getContext("2d").drawImage(img, 0, 0);
+                doc.addImage(canvas.toDataURL("image/png"), 'PNG', 80, 240, 50, 40);
+            }
+            doc.save(`Ficha_${m.nome}.pdf`);
         }
     </script>
 </body>
